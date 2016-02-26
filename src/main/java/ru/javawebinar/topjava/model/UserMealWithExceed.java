@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * GKislin
  * 11.01.2015.
  */
-public class UserMealWithExceed implements Comparable<UserMealWithExceed>{
+public class UserMealWithExceed implements Comparable<UserMealWithExceed> {
     protected final LocalDateTime dateTime;
 
     protected final String description;
@@ -54,9 +54,9 @@ public class UserMealWithExceed implements Comparable<UserMealWithExceed>{
 
     @Override
     public int compareTo(UserMealWithExceed o) {
-        return Integer.valueOf(calories).compareTo(o.calories)!=0?
-                Integer.valueOf(calories).compareTo(o.calories):description.compareTo(o.description)!=0?
-                description.compareTo(o.description):dateTime.compareTo(o.dateTime);
+        return Integer.valueOf(calories).compareTo(o.calories) != 0 ?
+                Integer.valueOf(calories).compareTo(o.calories) : description.compareTo(o.description) != 0 ?
+                description.compareTo(o.description) : dateTime.compareTo(o.dateTime);
     }
 
     @Override

@@ -46,9 +46,9 @@ public class UserMeal implements Comparable<UserMeal> {
 
     @Override
     public int compareTo(UserMeal o) {
-        return Integer.valueOf(calories).compareTo(o.calories)!=0?
-                Integer.valueOf(calories).compareTo(o.calories):description.compareTo(o.description)!=0?
-                description.compareTo(o.description):dateTime.compareTo(o.dateTime);
+        return Integer.valueOf(calories).compareTo(o.calories) != 0 ?
+                Integer.valueOf(calories).compareTo(o.calories) : description.compareTo(o.description) != 0 ?
+                description.compareTo(o.description) : dateTime.compareTo(o.dateTime);
     }
 
     @Override
