@@ -33,20 +33,49 @@ public class UserMealsUtil {
     public static List<UserMealWithExceed> getFilteredMealsWithExceeded(List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // TODO return filtered list with correctly exceeded field
         // System.out.println("// TODO return filtered list with correctly exceeded field");
-        Map<LocalDate, Integer> caloriesSumPerDate = new HashMap<>();
-        for (UserMeal meal : mealList) {
-            LocalDate mealDate = meal.getDateTime().toLocalDate();
-            caloriesSumPerDate.merge(mealDate, 0, (oldValue, newValue) -> oldValue + newValue);
+        List<UserMealWithExceed> list = new ArrayList<>();
+        //создаем карту для хранения по датам
+        HashMap<LocalDate, ArrayList<UserMeal>> mapMealByDate = new HashMap<>();
+
+        //идем по списку из параметра и сортируем по дате добавляя в карту
+        for(UserMeal meal : mealList){
+            //создаем временный лист и временную переменную с датой
+            LocalDate tempLocalDate = meal.getDateTime().toLocalDate();
+            ArrayList<UserMeal> temporaryList = new ArrayList<>();
+            //если карта содержит уже ключ с этой датой
+            if(mapMealByDate.keySet().contains(tempLocalDate)){
+                temporaryList = mapMealByDate.get(tempLocalDate);
+                temporaryList.add(meal);
+            }else {
+                temporaryList.add(meal);
+            }
+            mapMealByDate.put(tempLocalDate, temporaryList);
         }
 
-        List<UserMealWithExceed> mealExceeded = new ArrayList<>(mealList.size());
-        for (UserMeal meal : mealList) {
-            LocalDateTime dateTime = meal.getDateTime();
-            if (TimeUtil.isBetween(dateTime.toLocalTime(), startTime, endTime)) {
-                mealExceeded.add(new UserMealWithExceed(dateTime, meal.getDescription(), meal.getCalories(),
-                        caloriesSumPerDate.get(dateTime.toLocalDate()) > caloriesPerDay));
+        Map<LocalDate,Integer> mapMeal=new HashMap<>(mapMealByDate.size());
+        for(Map.Entry<LocalDate, ArrayList<UserMeal>> entry:mapMealByDate.entrySet()){
+            mapMeal.put(entry.getKey(),getTotalCalories(entry.getValue()));
+        }
+
+        //идем по карте проходим по каждому айтему циклом суммируя калории
+        //потом добавляем вторым циклом в результирующий список фильтруя по дате
+        for(UserMeal meal:mealList){
+            if(TimeUtil.isBetween(meal.getDateTime().toLocalTime(),startTime,endTime)){
+                list.add(new UserMealWithExceed(
+                        meal.getDateTime(),
+                        meal.getDescription(),
+                        meal.getCalories(),
+                        mapMeal.get(meal.getDateTime().toLocalDate()) > caloriesPerDay));
             }
         }
-        return Collections.unmodifiableList(mealExceeded);
+        return list;
+    }
+
+    private static int getTotalCalories(List<UserMeal> list){
+        int total = 0;
+        for(UserMeal m: list){
+            total+=m.getCalories();
+        }
+        return total;
     }
 }
