@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.repository.UserMealRepository;
@@ -17,6 +18,7 @@ import java.util.Collection;
 public class UserMealServiceImpl implements UserMealService {
 
     @Autowired
+    @Qualifier("inMemoryUserMealRepositoryImpl")
     private UserMealRepository repository;
 
     @Override
