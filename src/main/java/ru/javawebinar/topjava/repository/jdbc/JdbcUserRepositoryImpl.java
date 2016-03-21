@@ -22,7 +22,8 @@ import java.util.List;
 @Repository
 public class JdbcUserRepositoryImpl implements UserRepository {
 
-    private static final BeanPropertyRowMapper<User> ROW_MAPPER = BeanPropertyRowMapper.newInstance(User.class);
+    private static final BeanPropertyRowMapper<User> ROW_MAPPER
+            = BeanPropertyRowMapper.newInstance(User.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -56,10 +57,12 @@ public class JdbcUserRepositoryImpl implements UserRepository {
         } else {
             namedParameterJdbcTemplate.update(
                     "UPDATE users SET name=:name, email=:email, password=:password, " +
-                            "registered=:registered, enabled=:enabled, calories_per_day=:caloriesPerDay WHERE id=:id", map);
+                            "registered=:registered, enabled=:enabled, " +
+                            "calories_per_day=:caloriesPerDay WHERE id=:id", map);
         }
         return user;
     }
+
 
     @Override
     public boolean delete(int id) {

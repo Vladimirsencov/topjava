@@ -9,6 +9,7 @@ import java.util.List;
  * Date: 22.08.2014
  */
 public interface UserRepository {
+
     User save(User user);
 
     // false if not found

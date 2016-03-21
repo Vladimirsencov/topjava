@@ -18,7 +18,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    @Qualifier("inMemoryUserRepositoryImpl")
+    @Qualifier("jdbcUserRepositoryImpl")
     private UserRepository repository;
 
     public User save(User user) {
