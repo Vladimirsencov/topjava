@@ -26,6 +26,7 @@ import static ru.javawebinar.topjava.util.TimeUtil.isBetween;
 public class JdbcUserMealRepositoryImpl implements UserMealRepository {
     private static final BeanPropertyRowMapper<UserMeal> ROW_MAPPER
             = BeanPropertyRowMapper.newInstance(UserMeal.class);
+
     private final SimpleJdbcInsert userMealInsert;
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -35,24 +36,21 @@ public class JdbcUserMealRepositoryImpl implements UserMealRepository {
     @Autowired
     public JdbcUserMealRepositoryImpl(DataSource dataSource) {
         this.userMealInsert = new SimpleJdbcInsert(dataSource)
-                .withTableName("USER_MEALS");
-        //.usingGeneratedKeyColumns("id");
+                .withTableName("USER_MEALS")
+                .usingGeneratedKeyColumns("id");
     }
 
     @Override
     public UserMeal save(UserMeal userMeal, int userId) {
-        boolean isNew = false;
-        if (userMeal.isNew()) {
-            isNew = true;
-            userMeal.setId(userId);
-        }
         MapSqlParameterSource map = new MapSqlParameterSource()
-                .addValue("meal_id", userMeal.getId())
+                .addValue("id", userMeal.getId())
                 .addValue("description", userMeal.getDescription())
                 .addValue("dateTime", userMeal.getDateTime())
-                .addValue("calories", userMeal.getCalories());
-        if (isNew) {
-            userMealInsert.execute(map);
+                .addValue("calories", userMeal.getCalories())
+                .addValue("user_id", userId);
+        if (userMeal.isNew()) {
+            Number newKey = userMealInsert.executeAndReturnKey(map);
+            userMeal.setId(newKey.intValue());
         } else {
             userMeal = update(userMeal, map);
         }
@@ -61,13 +59,13 @@ public class JdbcUserMealRepositoryImpl implements UserMealRepository {
 
     @Override
     public boolean delete(int id, int userId) {
-        return jdbcTemplate.update("DELETE FROM user_meals WHERE meal_id=?", id) != 0;
+        return jdbcTemplate.update("DELETE FROM user_meals WHERE id=?", id) != 0;
     }
 
     @Override
     public UserMeal get(int id, int userId) {
         return jdbcTemplate.query("SELECT *FROM user_meals " +
-                "WHERE meal_id=?", ROW_MAPPER, id)
+                "WHERE id=?", ROW_MAPPER, id)
                 .stream()
                 .findAny()
                 .orElse(new UserMeal(0, LocalDateTime.MIN, "", 0));
@@ -80,11 +78,12 @@ public class JdbcUserMealRepositoryImpl implements UserMealRepository {
 
     @Override
     public List<UserMeal> getBetween(LocalDateTime startDate, LocalDateTime endDate, int userId) {
-        return jdbcTemplate
-                .query("SELECT * FROM user_meals WHERE meal_id = ? ORDER BY datetime ", ROW_MAPPER, userId)
-                .stream().peek(System.out::println)
+        List<UserMeal> lst = jdbcTemplate
+                .query("SELECT * FROM user_meals WHERE user_id = ? ORDER BY datetime DESC", ROW_MAPPER, userId)
+                .stream()
                 .filter(u -> isBetween(u.getDateTime().toLocalDate(), startDate.toLocalDate(), endDate.toLocalDate()))
                 .collect(toList());
+        return lst;
     }
 
     protected UserMeal update(UserMeal userMeal, MapSqlParameterSource map) {
@@ -92,7 +91,7 @@ public class JdbcUserMealRepositoryImpl implements UserMealRepository {
                 "UPDATE user_meals SET " +
                         "description=:description," +
                         " calories=:calories," +
-                        " dateTime=:dateTime"
+                        " dateTime=:dateTime WHERE id=:id"
                 , map);
         return userMeal;
     }
