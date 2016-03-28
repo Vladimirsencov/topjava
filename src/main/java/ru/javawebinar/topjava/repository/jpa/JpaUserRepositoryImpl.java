@@ -41,6 +41,7 @@ public class JpaUserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public User get(int id) {
         return em.find(User.class, id);
     }
@@ -59,11 +60,13 @@ public class JpaUserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public User getByEmail(String email) {
         return em.createNamedQuery(User.BY_EMAIL, User.class).setParameter(1, email).getSingleResult();
     }
 
     @Override
+    @Transactional
     public List<User> getAll() {
         return em.createNamedQuery(User.ALL_SORTED, User.class).getResultList();
     }
