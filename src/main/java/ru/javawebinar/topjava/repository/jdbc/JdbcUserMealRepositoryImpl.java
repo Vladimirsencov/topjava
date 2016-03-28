@@ -92,4 +92,9 @@ public class JdbcUserMealRepositoryImpl implements UserMealRepository {
                 "SELECT * FROM meals WHERE user_id=?  AND date_time BETWEEN  ? AND ? ORDER BY date_time DESC",
                 ROW_MAPPER, userId, startDate, endDate);
     }
+
+    @Override
+    public void deleteAll(int userID) {
+        jdbcTemplate.update("DELETE FROM meals WHERE  user_id=?", userID);
+    }
 }
