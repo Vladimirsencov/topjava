@@ -8,7 +8,10 @@ import ru.javawebinar.topjava.util.UserMealsUtil;
  * 06.03.2015.
  */
 public class LoggedUser {
-    public static int id = BaseEntity.START_SEQ;
+    private LoggedUser() {
+    }
+
+    private static int id = BaseEntity.START_SEQ;
 
     public static int id() {
         return id;
