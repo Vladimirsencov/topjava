@@ -59,14 +59,14 @@ public class JpaUserMealRepositoryImpl implements UserMealRepository {
 
     @Override
     public List<UserMeal> getAll(int userId) {
-        return entityManager.createNamedQuery(UserMeal.GET, UserMeal.class)
+        return entityManager.createNamedQuery(UserMeal.ALL_SORTED, UserMeal.class)
                 .setParameter("userId", userId)
                 .getResultList();
     }
 
     @Override
     public List<UserMeal> getBetween(LocalDateTime startDate, LocalDateTime endDate, int userId) {
-        return entityManager.createNamedQuery(UserMeal.GET, UserMeal.class)
+        return entityManager.createNamedQuery(UserMeal.GET_BETWEN, UserMeal.class)
                 .setParameter("userId", userId)
                 .setParameter("after", startDate)
                 .setParameter("before", endDate)

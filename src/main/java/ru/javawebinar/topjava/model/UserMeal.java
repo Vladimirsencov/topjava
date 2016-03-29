@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * 11.01.2015.
  */
 @NamedQueries({
-        @NamedQuery(name = UserMeal.GET, query = "SELECT m FROM UserMeal m WHERE m.user.id=:userId"),
+        @NamedQuery(name = UserMeal.GET, query = "SELECT m FROM UserMeal m WHERE m.id=:id and m.user.id=:userId"),
         @NamedQuery(name = UserMeal.ALL_SORTED, query
                 = "SELECT m FROM UserMeal m WHERE m.user.id=:userId ORDER BY m.dateTime DESC "),
         @NamedQuery(name = UserMeal.DELETE_ALL,
