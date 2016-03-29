@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.model;
 
 import javax.persistence.*;
+import javax.validation.constraints.Digits;
 import java.time.LocalDateTime;
 
 /**
@@ -31,12 +32,17 @@ public class UserMeal extends BaseEntity {
             DELETE = "UserMeal.delete",
             DELETE_ALL = "UserMeal.deleteAll",
             GET_BETWEN = "UserMeal.getBeetwen";
+
     @Column(name = "calories", nullable = false, columnDefinition = "default 0")
+    @Digits(fraction = 0, integer = 4)
     protected int calories;
+
     @Column(name = "date_time", nullable = false)
     private LocalDateTime dateTime;
+
     @Column(name = "description", nullable = false)
     private String description;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

@@ -26,6 +26,7 @@ public class JpaUserMealRepositoryImpl implements UserMealRepository {
 
 
     @Override
+    @Transactional
     public UserMeal save(UserMeal userMeal, int userId) {
         User ref = entityManager.getReference(User.class, userId);
         userMeal.setUser(ref);
@@ -73,6 +74,7 @@ public class JpaUserMealRepositoryImpl implements UserMealRepository {
     }
 
     @Override
+    @Transactional
     public void deleteAll(int userId) {
         entityManager.createNamedQuery(UserMeal.DELETE_ALL)
                 .setParameter("userId", userId)
