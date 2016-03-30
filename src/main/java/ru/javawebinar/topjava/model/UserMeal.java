@@ -26,12 +26,12 @@ import java.time.LocalDateTime;
         uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date_time"},
                 name = "meals_unique_user_datetime_idx")})
 public class UserMeal extends BaseEntity {
-    public static final String
-            GET = "UserMeal.get",
-            ALL_SORTED = "UserMeal.getAll",
-            DELETE = "UserMeal.delete",
-            DELETE_ALL = "UserMeal.deleteAll",
-            GET_BETWEN = "UserMeal.getBeetwen";
+    public static final String GET = "UserMeal.get";
+    public static final String ALL_SORTED = "UserMeal.getAll";
+    public static final String DELETE = "UserMeal.delete";
+    public static final String DELETE_ALL = "UserMeal.deleteAll";
+    public static final String GET_BETWEN = "UserMeal.getBeetwen";
+
 
     @Column(name = "calories", nullable = false, columnDefinition = "default 0")
     @Digits(fraction = 0, integer = 4)
