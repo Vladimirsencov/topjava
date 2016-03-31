@@ -1,3 +1,6 @@
+date_time TIMESTAMP NOT NULL,
+description TEXT NOT NULL,
+calories INT NOT NULL,
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS meals;
 DROP TABLE IF EXISTS users;
