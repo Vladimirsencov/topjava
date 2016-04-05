@@ -7,6 +7,7 @@ import ru.javawebinar.topjava.util.UserMealsUtil;
 
 import javax.persistence.*;
 import javax.validation.constraints.Digits;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
@@ -128,5 +129,9 @@ public class User extends NamedEntity {
                 ", roles=" + roles +
                 ", caloriesPerDay=" + caloriesPerDay +
                 ')';
+    }
+
+    public Collection<UserMeal> getMeals() {
+        return null;
     }
 }

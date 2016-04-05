@@ -48,4 +48,14 @@ public class UserMealServiceImpl implements UserMealService {
     public UserMeal save(UserMeal meal, int userId) {
         return repository.save(meal, userId);
     }
+
+    @Override
+    public UserMeal getWithUser(int meal1Id, int userId) {
+        return null;
+    }
+
+    @Override
+    public UserMeal getWithUserOneRepository(int meal1Id, int userId) {
+        return null;
+    }
 }
