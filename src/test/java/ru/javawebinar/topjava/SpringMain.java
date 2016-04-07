@@ -22,9 +22,6 @@ public class SpringMain {
             appCtx.getEnvironment().setActiveProfiles(Profiles.ACTIVE_DB, Profiles.DB_IMPLEMENTATION);
             appCtx.load("spring/spring-app.xml", "spring/spring-db.xml");
             appCtx.refresh();
-
-        //try (ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml", "spring/mock.xml")) {
-            //try (ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml", "spring/spring-db.xml")) {
             System.out.println(Arrays.toString(appCtx.getBeanDefinitionNames()));
             AdminRestController adminUserController = appCtx.getBean(AdminRestController.class);
             System.out.println(adminUserController.create(UserTestData.USER));
