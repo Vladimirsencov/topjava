@@ -23,6 +23,7 @@ import static ru.javawebinar.topjava.Profiles.ACTIVE_DB;
 @ContextConfiguration({
         "classpath:spring/spring-app.xml",
         "classpath:spring/spring-db.xml",
+        "classpath:spring/spring-mvc.xml",
 })
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles(ACTIVE_DB)

@@ -17,9 +17,11 @@ import java.util.Objects;
  * 06.03.2015.
  */
 @Service
+
 public class UserServiceImpl implements UserService {
 
     @Autowired
+//    @Qualifier("jdbcUserRepositoryImpl")
     private UserRepository repository;
 
     @CacheEvict(value = "users", allEntries = true)
