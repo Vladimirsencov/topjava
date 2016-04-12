@@ -44,7 +44,7 @@ public class UserMealJspController extends AbstractUserMealController {
     @RequestMapping(value = "/delete", method = RequestMethod.GET)
     public String delete(@RequestParam(value = "id") String id) {
         super.delete(valueOf(id));
-        return "redirect:meals";
+        return "redirect:/meals";
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.GET)

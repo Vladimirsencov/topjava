@@ -140,7 +140,7 @@ public class User extends NamedEntity {
                 ", enabled=" + enabled +
                 ", roles=" + roles +
                 ", caloriesPerDay=" + caloriesPerDay +
-                ')';
+                ")".trim();
     }
 
 }

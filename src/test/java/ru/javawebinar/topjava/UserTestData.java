@@ -51,7 +51,7 @@ public class UserTestData {
                     ", enabled=" + enabled +
                     ", password=" + password +
                     ", authorities=" + roles +
-                    ')';
+                    ")".trim();
         }
 
         @Override
