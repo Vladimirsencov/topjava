@@ -123,12 +123,12 @@ public class User extends NamedEntity {
         return password;
     }
 
-    public List<UserMeal> getMeals() {
-        return meals;
-    }
-
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public List<UserMeal> getMeals() {
+        return meals;
     }
 
     @Override
@@ -142,4 +142,5 @@ public class User extends NamedEntity {
                 ", caloriesPerDay=" + caloriesPerDay +
                 ')';
     }
+
 }
