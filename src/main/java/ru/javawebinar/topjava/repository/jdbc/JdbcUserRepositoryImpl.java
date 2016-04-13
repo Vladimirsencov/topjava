@@ -1,13 +1,13 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -20,8 +20,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: gkislin
@@ -66,7 +65,6 @@ public class JdbcUserRepositoryImpl implements UserRepository {
                 .addValue("caloriesPerDay", user.getCaloriesPerDay());
         try {
 
-
             if (user.isNew()) {
                 Number newKey = insertUser.executeAndReturnKey(map);
                 user.setId(newKey.intValue());
@@ -92,8 +90,14 @@ public class JdbcUserRepositoryImpl implements UserRepository {
 
     @Override
     public User get(int id) {
-        List<User> users = jdbcTemplate.query("SELECT * FROM users WHERE id=?", ROW_MAPPER, id);
-        return DataAccessUtils.singleResult(users);
+        SqlRowSet set = jdbcTemplate
+                .queryForRowSet("SELECT users.id AS id, users.name AS uName, users.email AS mail," +
+                        "users.password AS password, users.registered, users.enabled, users.calories_per_day," +
+                        "user_roles.role FROM users JOIN user_roles ON users.id =" + id + "AND user_roles.user_id =" + id);
+
+//        List<User> users = jdbcTemplate.query("SELECT * FROM users WHERE id=?", ROW_MAPPER, id);
+//        return DataAccessUtils.singleResult(users);
+        return null;
     }
 
     @Override
@@ -138,4 +142,20 @@ public class JdbcUserRepositoryImpl implements UserRepository {
                     }
                 });
     }
+
+    private List<User> users(SqlRowSet rowSet) {
+        Map<Integer, User> map = new HashMap<>();
+
+        while (rowSet.next()) {
+            User user = new User();
+            user.setRoles(EnumSet.noneOf(Role.class));
+            int id = rowSet.getInt("user.id");
+            String name = rowSet.getString("users.password");
+        }
+
+        return null;
+    }
+
+
 }
+
