@@ -1,0 +1,355 @@
+Index: src/test/java/ru/javawebinar/topjava/TestUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/TestUtil.java	(revision )
++++ src/test/java/ru/javawebinar/topjava/TestUtil.java	(revision )
+@@ -0,0 +1,31 @@
++package ru.javawebinar.topjava;
++
++import org.springframework.test.web.servlet.ResultActions;
++import ru.javawebinar.topjava.matcher.ModelMatcher;
++
++import java.io.UnsupportedEncodingException;
++
++/**
++ * GKislin
++ * 05.01.2015.
++ */
++public class TestUtil {
++
++    public static ResultActions print(ResultActions action) throws UnsupportedEncodingException {
++        System.out.println(getContent(action));
++        return action;
++    }
++
++    public static String getContent(ResultActions action) throws UnsupportedEncodingException {
++        return action.andReturn().getResponse().getContentAsString();
++    }
++
++    /**
++     * Compare entities using toString
++     */
++    public static class ToStringModelMatcher<T> extends ModelMatcher<T, String> {
++        public ToStringModelMatcher(Class<T> entityClass) {
++            super(Object::toString, entityClass);
++        }
++    }
++}
+Index: src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java	(revision )
++++ src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java	(revision )
+@@ -0,0 +1,48 @@
++package ru.javawebinar.topjava.web.user;
++
++import org.junit.Test;
++import org.springframework.http.MediaType;
++import ru.javawebinar.topjava.LoggedUser;
++import ru.javawebinar.topjava.TestUtil;
++import ru.javawebinar.topjava.model.Role;
++import ru.javawebinar.topjava.model.User;
++import ru.javawebinar.topjava.web.AbstractControllerTest;
++import ru.javawebinar.topjava.web.json.JsonUtil;
++
++import java.util.Collections;
++
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
++import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
++import static ru.javawebinar.topjava.UserTestData.*;
++import static ru.javawebinar.topjava.web.user.ProfileRestController.REST_URL;
++
++public class ProfileRestControllerTest extends AbstractControllerTest {
++
++    @Test
++    public void testGet() throws Exception {
++        TestUtil.print(mockMvc.perform(get(REST_URL))
++                .andExpect(status().isOk())
++                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
++                .andExpect(MATCHER.contentMatcher(USER)));
++    }
++
++    @Test
++    public void testDelete() throws Exception {
++        mockMvc.perform(delete(REST_URL).contentType(MediaType.APPLICATION_JSON))
++                .andExpect(status().isOk());
++        MATCHER.assertCollectionEquals(Collections.singletonList(ADMIN), userService.getAll());
++    }
++
++    @Test
++    public void testUpdate() throws Exception {
++        User updated = new User(LoggedUser.id(), "newName", "newEmail", "newPassword", Role.ROLE_USER);
++        mockMvc.perform(put(REST_URL).contentType(MediaType.APPLICATION_JSON)
++                .content(JsonUtil.writeValue(updated)))
++                .andDo(print())
++                .andExpect(status().isOk());
++
++        MATCHER.assertEquals(updated, new User(userService.getByEmail("newEmail")));
++    }
++}
+\ No newline at end of file
+Index: src/test/java/ru/javawebinar/topjava/matcher/TestMatcher.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/matcher/TestMatcher.java	(revision )
++++ src/test/java/ru/javawebinar/topjava/matcher/TestMatcher.java	(revision )
+@@ -0,0 +1,29 @@
++package ru.javawebinar.topjava.matcher;
++
++import org.hamcrest.BaseMatcher;
++import org.hamcrest.Description;
++import ru.javawebinar.topjava.web.json.JsonUtil;
++
++/**
++ * GKislin
++ * 05.01.2015.
++ */
++abstract public class TestMatcher<T> extends BaseMatcher<String> {
++    protected T expected;
++
++    public TestMatcher(T expected) {
++        this.expected = expected;
++    }
++
++    @Override
++    public boolean matches(Object actual) {
++        return compare(expected, (String) actual);
++    }
++
++    abstract protected boolean compare(T expected, String actual);
++
++    @Override
++    public void describeTo(Description description) {
++        description.appendText(JsonUtil.writeValue(expected));
++    }
++}
+Index: src/test/java/ru/javawebinar/topjava/UserTestData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/UserTestData.java	(date 1460622963000)
++++ src/test/java/ru/javawebinar/topjava/UserTestData.java	(revision )
+@@ -22,7 +22,7 @@
+     public static final User USER = new User(USER_ID, "User", "user@yandex.ru", "password", Role.ROLE_USER);
+     public static final User ADMIN = new User(ADMIN_ID, "Admin", "admin@gmail.com", "admin", Role.ROLE_ADMIN, Role.ROLE_USER);
+ 
+-    public static final ModelMatcher<User, TestUser> MATCHER = new ModelMatcher<>(u -> ((u instanceof TestUser) ? (TestUser) u : new TestUser(u)));
++    public static final ModelMatcher<User, TestUser> MATCHER = new ModelMatcher<>(u -> ((u instanceof TestUser) ? (TestUser) u : new TestUser(u)), User.class);
+ 
+     public static class TestUser extends User {
+ 
+Index: src/test/java/ru/javawebinar/topjava/matcher/ModelMatcher.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/matcher/ModelMatcher.java	(date 1460622963000)
++++ src/test/java/ru/javawebinar/topjava/matcher/ModelMatcher.java	(revision )
+@@ -1,11 +1,20 @@
+ package ru.javawebinar.topjava.matcher;
+ 
+ import org.junit.Assert;
++import org.springframework.test.web.servlet.ResultActions;
++import org.springframework.test.web.servlet.ResultMatcher;
++import ru.javawebinar.topjava.TestUtil;
++import ru.javawebinar.topjava.web.json.JsonUtil;
+ 
++import java.io.UnsupportedEncodingException;
++import java.util.Arrays;
+ import java.util.Collection;
++import java.util.List;
+ import java.util.function.Function;
+ import java.util.stream.Collectors;
+ 
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
++
+ /**
+  * GKislin
+  * 06.01.2015.
+@@ -15,11 +24,21 @@
+  */
+ public class ModelMatcher<T, R> {
+     protected Function<T, R> entityConverter;
++    protected Class<T> entityClass;
+ 
+-    public ModelMatcher(Function<T, R> entityConverter) {
++    public ModelMatcher(Function<T, R> entityConverter, Class<T> entityClass) {
+         this.entityConverter = entityConverter;
++        this.entityClass = entityClass;
+     }
+ 
++    private T fromJsonValue(String json) {
++        return JsonUtil.readValue(json, entityClass);
++    }
++
++    private Collection<T> fromJsonValues(String json) {
++        return JsonUtil.readValues(json, entityClass);
++    }
++
+     public void assertEquals(T expected, T actual) {
+         Assert.assertEquals(entityConverter.apply(expected), entityConverter.apply(actual));
+     }
+@@ -28,7 +47,38 @@
+         Assert.assertEquals(map(expected, entityConverter), map(actual, entityConverter));
+     }
+ 
+-    public static <S, T> Collection<T> map(Collection<S> collection, Function<S, T> converter) {
++    public static <S, T> List<T> map(Collection<S> collection, Function<S, T> converter) {
+         return collection.stream().map(converter).collect(Collectors.toList());
++    }
++
++    public ResultMatcher contentMatcher(T expect) {
++        return content().string(
++                new TestMatcher<T>(expect) {
++                    @Override
++                    protected boolean compare(T expected, String body) {
++                        R actualForCompare = entityConverter.apply(fromJsonValue(body));
++                        R expectedForCompare = entityConverter.apply(expected);
++                        return expectedForCompare.equals(actualForCompare);
++                    }
++                });
++    }
++
++    public final ResultMatcher contentListMatcher(T... expected) {
++        return contentListMatcher(Arrays.asList(expected));
++    }
++
++    public final ResultMatcher contentListMatcher(List<T> expected) {
++        return content().string(new TestMatcher<List<T>>(expected) {
++            @Override
++            protected boolean compare(List<T> expected, String actual) {
++                List<R> actualList = map(fromJsonValues(actual), entityConverter);
++                List<R> expectedList = map(expected, entityConverter);
++                return expectedList.equals(actualList);
++            }
++        });
++    }
++
++    public T fromJsonAction(ResultActions action) throws UnsupportedEncodingException {
++        return fromJsonValue(TestUtil.getContent(action));
+     }
+ }
+Index: src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(date 1460622963000)
++++ src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(revision )
+@@ -2,13 +2,21 @@
+ 
+ import org.junit.Test;
+ import org.springframework.http.MediaType;
++import org.springframework.test.web.servlet.ResultActions;
++import ru.javawebinar.topjava.TestUtil;
++import ru.javawebinar.topjava.model.Role;
++import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.web.AbstractControllerTest;
++import ru.javawebinar.topjava.web.json.JsonUtil;
+ 
+-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
++import java.util.Arrays;
++import java.util.Collections;
++
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+-import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
++import static ru.javawebinar.topjava.UserTestData.*;
+ 
+ public class AdminRestControllerTest extends AbstractControllerTest {
+ 
+@@ -19,6 +27,58 @@
+         mockMvc.perform(get(REST_URL + ADMIN_ID))
+                 .andExpect(status().isOk())
+                 .andDo(print())
+-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
++                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
++                .andExpect(MATCHER.contentMatcher(ADMIN));
++    }
++
++    @Test
++    public void testGetByEmail() throws Exception {
++        mockMvc.perform(get(REST_URL + "by?email=" + USER.getEmail()))
++                .andExpect(status().isOk())
++                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
++                .andExpect(MATCHER.contentMatcher(USER));
++    }
++
++    @Test
++    public void testDelete() throws Exception {
++        mockMvc.perform(delete(REST_URL + USER_ID).contentType(MediaType.APPLICATION_JSON))
++                .andDo(print())
++                .andExpect(status().isOk());
++        MATCHER.assertCollectionEquals(Collections.singletonList(ADMIN), userService.getAll());
++    }
++
++    @Test
++    public void testUpdate() throws Exception {
++        User updated = new User(USER);
++        updated.setName("UpdatedName");
++        updated.setRoles(Collections.singletonList(Role.ROLE_ADMIN));
++        mockMvc.perform(put(REST_URL + USER_ID)
++                .contentType(MediaType.APPLICATION_JSON)
++                .content(JsonUtil.writeValue(updated)))
++                .andExpect(status().isOk());
++
++        MATCHER.assertEquals(updated, userService.get(USER_ID));
++    }
++
++    @Test
++    public void testCreate() throws Exception {
++        TestUser expected = new TestUser("New", "new@gmail.com", "newPass", Role.ROLE_USER, Role.ROLE_ADMIN);
++        ResultActions action = mockMvc.perform(post(REST_URL)
++                .contentType(MediaType.APPLICATION_JSON)
++                .content(JsonUtil.writeValue(expected.asUser()))).andExpect(status().isCreated());
++
++        User returned = MATCHER.fromJsonAction(action);
++        expected.setId(returned.getId());
++
++        MATCHER.assertEquals(expected, returned);
++        MATCHER.assertCollectionEquals(Arrays.asList(ADMIN, expected, USER), userService.getAll());
++    }
++
++    @Test
++    public void testGetAll() throws Exception {
++        TestUtil.print(mockMvc.perform(get(REST_URL).contentType(MediaType.APPLICATION_JSON))
++                .andExpect(status().isOk())
++                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
++                .andExpect(MATCHER.contentListMatcher(ADMIN, USER)));
+     }
+ }
+\ No newline at end of file
+Index: src/test/java/ru/javawebinar/topjava/MealTestData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/MealTestData.java	(date 1460622963000)
++++ src/test/java/ru/javawebinar/topjava/MealTestData.java	(revision )
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.topjava;
+ 
++import ru.javawebinar.topjava.TestUtil.ToStringModelMatcher;
+ import ru.javawebinar.topjava.matcher.ModelMatcher;
+ import ru.javawebinar.topjava.model.UserMeal;
+ 
+@@ -17,7 +18,7 @@
+  */
+ public class MealTestData {
+ 
+-    public static final ModelMatcher<UserMeal, String> MATCHER = new ModelMatcher<>(UserMeal::toString);
++    public static final ModelMatcher<UserMeal, String> MATCHER = new ToStringModelMatcher<>(UserMeal.class);
+ 
+     public static final int MEAL1_ID = START_SEQ + 2;
+     public static final int ADMIN_MEAL_ID = START_SEQ + 8;
