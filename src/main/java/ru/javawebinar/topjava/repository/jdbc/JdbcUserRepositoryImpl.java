@@ -22,6 +22,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * User: gkislin
  * Date: 26.08.2014
@@ -91,23 +93,24 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     @Override
     public User get(int id) {
         SqlRowSet set = jdbcTemplate
-                .queryForRowSet("SELECT users.id AS id, users.name AS uName, users.email AS mail," +
-                        "users.password AS password, users.registered, users.enabled, users.calories_per_day," +
+                .queryForRowSet("SELECT users.id, users.name, users.email," +
+                        "users.password, users.registered, users.enabled, users.calories_per_day," +
                         "user_roles.role FROM users JOIN user_roles ON users.id =" + id + "AND user_roles.user_id =" + id);
-
-//        List<User> users = jdbcTemplate.query("SELECT * FROM users WHERE id=?", ROW_MAPPER, id);
-//        return DataAccessUtils.singleResult(users);
-        return null;
+        return users(set).get(0);
     }
 
     @Override
     public User getByEmail(String email) {
-        return jdbcTemplate.queryForObject("SELECT * FROM users WHERE email=?", ROW_MAPPER, email);
+        User user = jdbcTemplate.queryForObject("SELECT * FROM users WHERE email=?", ROW_MAPPER, email);
+        return get(user.getId());
     }
 
     @Override
     public List<User> getAll() {
-        return jdbcTemplate.query("SELECT * FROM users ORDER BY name, email", ROW_MAPPER);
+        SqlRowSet set = jdbcTemplate.queryForRowSet("SELECT users.id, users.name, users.email," +
+                "users.password, users.registered, users.enabled, users.calories_per_day," +
+                "user_roles.role FROM users JOIN user_roles ON users.id= user_roles.user_id");
+        return users(set);
     }
 
 
@@ -147,13 +150,31 @@ public class JdbcUserRepositoryImpl implements UserRepository {
         Map<Integer, User> map = new HashMap<>();
 
         while (rowSet.next()) {
-            User user = new User();
-            user.setRoles(EnumSet.noneOf(Role.class));
-            int id = rowSet.getInt("user.id");
-            String name = rowSet.getString("users.password");
+            Integer id = rowSet.getInt(1);
+            if (!map.containsKey(id)) {
+                User user = new User();
+                user.setRoles(EnumSet.noneOf(Role.class));
+                String name = rowSet.getString(2);
+                String email = rowSet.getString(3);
+                String password = rowSet.getString(4);
+                Date registered = rowSet.getDate(5);
+                Boolean enabled = rowSet.getBoolean(6);
+                Integer caloriesPerDay = rowSet.getInt(7);
+                Role role = Role.valueOf(rowSet.getString(8));
+                user.setId(id);
+                user.setName(name);
+                user.setEmail(email);
+                user.setPassword(password);
+                user.setRegistered(registered);
+                user.setEnabled(enabled);
+                user.setCaloriesPerDay(caloriesPerDay);
+                user.getRoles().add(role);
+                map.put(id, user);
+            } else {
+                map.get(id).getRoles().add(Role.valueOf(rowSet.getString(8)));
+            }
         }
-
-        return null;
+        return map.values().stream().collect(toList());
     }
 
 
