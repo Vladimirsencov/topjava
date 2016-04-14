@@ -127,6 +127,10 @@ public class User extends NamedEntity {
         return meals;
     }
 
+    public void setRoles(List<Role> roles) {
+        this.roles = EnumSet.copyOf(roles);
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
