@@ -22,11 +22,12 @@ import static ru.javawebinar.topjava.Profiles.ACTIVE_DB;
  */
 @ContextConfiguration({
         "classpath:spring/spring-app.xml",
-        "classpath:spring/spring-db.xml"
+        "classpath:spring/spring-db.xml",
+        "classpath:spring/spring-mvc.xml"
 })
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles(ACTIVE_DB)
-@Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
+@Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"), executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 abstract public class AbstractServiceTest {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());

@@ -81,7 +81,7 @@ public class User extends NamedEntity {
         this.password = password;
         this.caloriesPerDay = caloriesPerDay;
         this.enabled = enabled;
-        this.roles = roles;
+        this.roles = EnumSet.copyOf(roles);
     }
 
     public String getEmail() {
@@ -120,20 +120,20 @@ public class User extends NamedEntity {
         return roles;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public List<UserMeal> getMeals() {
-        return meals;
-    }
-
     public void setRoles(List<Role> roles) {
         this.roles = EnumSet.copyOf(roles);
     }
 
+    public String getPassword() {
+        return password;
+    }
+
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public List<UserMeal> getMeals() {
+        return meals;
     }
 
     @Override
