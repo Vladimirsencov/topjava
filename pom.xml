@@ -76,6 +76,7 @@
                 <version>2.2</version>
                 <configuration>
                     <contextFile>src/main/resources/tomcat/context.xml</contextFile>
+                    <port>8801</port>
                     <systemProperties>
                         <file.encoding>UTF-8</file.encoding>
                         <spring.profiles.active>tomcat,datajpa</spring.profiles.active>
