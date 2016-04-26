@@ -34,7 +34,8 @@ public class InMemoryAdminRestControllerSpringTest {
 
     @Before
     public void setUp() throws Exception {
-        repository.getAll().forEach(u -> repository.delete(u.getId()));
+        repository.getAll()
+                .forEach(u -> repository.delete(u.getId()));
         repository.save(USER);
         repository.save(ADMIN);
     }
