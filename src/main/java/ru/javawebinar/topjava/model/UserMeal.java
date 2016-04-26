@@ -29,19 +29,15 @@ public class UserMeal extends BaseEntity {
     public static final String ALL_SORTED = "UserMeal.getAll";
     public static final String DELETE = "UserMeal.delete";
     public static final String GET_BETWEEN = "UserMeal.getBetween";
-
-    @Column(name = "date_time", nullable = false)
-    @NotNull
-    private LocalDateTime dateTime;
-
-    @Column(name = "description", nullable = false)
-    @NotEmpty
-    private String description;
-
     @Column(name = "calories", nullable = false)
     @Range(min = 10, max = 5000)
     protected int calories;
-
+    @Column(name = "date_time", nullable = false)
+    @NotNull
+    private LocalDateTime dateTime;
+    @Column(name = "description", nullable = false)
+    @NotEmpty
+    private String description;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -64,20 +60,20 @@ public class UserMeal extends BaseEntity {
         return dateTime;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public int getCalories() {
-        return calories;
-    }
-
     public void setDateTime(LocalDateTime dateTime) {
         this.dateTime = dateTime;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getCalories() {
+        return calories;
     }
 
     public void setCalories(int calories) {

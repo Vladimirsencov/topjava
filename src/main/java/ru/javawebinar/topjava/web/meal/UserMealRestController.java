@@ -28,7 +28,6 @@ public class UserMealRestController extends AbstractUserMealController {
     private UserMealService service;
 
 
-
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public UserMeal get(@PathVariable("id") int id) {
         return super.get(id);

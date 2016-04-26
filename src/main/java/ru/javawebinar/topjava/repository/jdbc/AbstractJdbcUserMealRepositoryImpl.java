@@ -22,6 +22,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 public abstract class AbstractJdbcUserMealRepositoryImpl<T> implements UserMealRepository {
     private final RowMapper<UserMeal> rowMapper;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private SimpleJdbcInsert insertUserMeal;
 
     public AbstractJdbcUserMealRepositoryImpl(RowMapper<UserMeal> rowMapper, DataSource dataSource) {
         this.rowMapper = rowMapper;
@@ -30,14 +35,6 @@ public abstract class AbstractJdbcUserMealRepositoryImpl<T> implements UserMealR
                 .usingGeneratedKeyColumns("id");
 
     }
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    private SimpleJdbcInsert insertUserMeal;
 
     protected abstract T toDbValue(LocalDateTime ldt);
 
