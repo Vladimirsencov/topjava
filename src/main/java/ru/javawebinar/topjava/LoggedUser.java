@@ -35,8 +35,6 @@ public class LoggedUser extends org.springframework.security.core.userdetails.Us
         LoggedUser user = safeGet();
         requireNonNull(user, "No authorized user found");
         return user;
-
-        LoggedUser.id = id;
     }
 
     public static int id() {
