@@ -43,7 +43,7 @@
         <!--web-->
         <webjars-bootstrap.version>3.3.6</webjars-bootstrap.version>
         <webjars-jquery.version>2.2.3</webjars-jquery.version>
-        <webjars-datetimepicker.version>2.5.1</webjars-datetimepicker.version>
+        <webjars-datetimepicker.version>2.4.7</webjars-datetimepicker.version>
         <webjars-noty.version>2.3.8</webjars-noty.version>
         <webjars-datatables.version>1.10.11</webjars-datatables.version>
     </properties>
@@ -176,7 +176,7 @@
             <version>${webjars-jquery.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.webjars</groupId>
+            <groupId>org.webjars.bower</groupId>
             <artifactId>datetimepicker</artifactId>
             <version>${webjars-datetimepicker.version}</version>
         </dependency>
