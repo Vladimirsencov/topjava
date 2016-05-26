@@ -1,0 +1,197 @@
+Index: src/main/resources/db/heroku.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>NATIVE_TO_ASCII_UTF-8
+===================================================================
+--- src/main/resources/db/heroku.properties	(revision )
++++ src/main/resources/db/heroku.properties	(revision )
+@@ -0,0 +1,5 @@
++jpa.showSql=false
++hibernate.format_sql=false
++hibernate.use_sql_comments=false
++database.init=false
++jdbc.initLocation=initDB.sql
+\ No newline at end of file
+Index: Procfile
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- Procfile	(revision )
++++ Procfile	(revision )
+@@ -0,0 +1,1 @@
++web:    java $JAVA_OPTS -Dspring.profiles.active="datajpa,heroku" -DTOPJAVA_ROOT="." -jar target/dependency/webapp-runner.jar --port $PORT target/*.war
+\ No newline at end of file
+Index: src/main/resources/spring/spring-db.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/resources/spring/spring-db.xml	(date 1463003818000)
++++ src/main/resources/spring/spring-db.xml	(revision )
+@@ -13,8 +13,6 @@
+        http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
+ 
+-    <!-- Change DB by comment/uncomment property-placeholder -->
+-
+     <jdbc:initialize-database data-source="dataSource" enabled="${database.init}">
+         <jdbc:script location="classpath:db/${jdbc.initLocation}"/>
+         <jdbc:script encoding="utf-8" location="classpath:db/populateDB.sql"/>
+@@ -66,6 +64,31 @@
+         </bean>
+     </beans>
+ 
++    <beans profile="heroku">
++        <context:property-placeholder location="classpath:/db/heroku.properties" system-properties-mode="OVERRIDE"/>
++
++        <bean class="java.net.URI" id="dbUrl">
++            <constructor-arg value="${DATABASE_URL}"/>
++        </bean>
++        <bean id="dataSource"
++              class="org.apache.tomcat.jdbc.pool.DataSource"
++              p:url="#{ 'jdbc:postgresql://' + @dbUrl.getHost() + @dbUrl.getPath() }"
++              p:username="#{ @dbUrl.getUserInfo().split(':')[0] }"
++              p:password="#{ @dbUrl.getUserInfo().split(':')[1] }"
++              p:driverClassName="org.postgresql.Driver"
++              p:validationQuery="SELECT 1 FROM users"
++              p:maxActive="10"
++              p:minIdle="2"
++              p:maxWait="20000"
++              p:initialSize="2"
++              p:maxIdle="5"
++              p:testOnBorrow="true"
++              p:removeAbandoned="true"
++              p:testOnConnect="true"
++              p:testWhileIdle="true"/>
++    </beans>
++
++    <!--Repository implementation-->
+     <beans profile="datajpa,jpa">
+         <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+               p:dataSource-ref="dataSource"
+\ No newline at end of file
+Index: settings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- settings.xml	(revision )
++++ settings.xml	(revision )
+@@ -0,0 +1,11 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
++          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
++
++    <activeProfiles>
++        <activeProfile>postgres</activeProfile>
++        <activeProfile>heroku</activeProfile>
++    </activeProfiles>
++</settings>
+Index: hr.bat
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- hr.bat	(revision )
++++ hr.bat	(revision )
+@@ -0,0 +1,2 @@
++call mvn -B -s settings.xml -DskipTests=true clean package
++call java -Dspring.profiles.active="datajpa,heroku" -DDATABASE_URL="postgres://user:password@localhost:5432/topjava" -jar target/dependency/webapp-runner.jar target/*.war
+Index: src/main/java/ru/javawebinar/topjava/repository/datajpa/DataJpaUserRepositoryImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/repository/datajpa/DataJpaUserRepositoryImpl.java	(date 1463003818000)
++++ src/main/java/ru/javawebinar/topjava/repository/datajpa/DataJpaUserRepositoryImpl.java	(revision )
+@@ -3,9 +3,11 @@
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.data.domain.Sort;
+ import org.springframework.stereotype.Repository;
++import ru.javawebinar.topjava.model.BaseEntity;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.repository.UserRepository;
+ 
++import javax.validation.ValidationException;
+ import java.util.List;
+ 
+ /**
+@@ -20,13 +22,21 @@
+     @Autowired
+     private ProxyUserRepository proxy;
+ 
++    public void checkModificationAllowed(Integer id) {
++        if (id != null && id < BaseEntity.START_SEQ + 2) {
++            throw new ValidationException("Admin/User modification is not allowed. <br><br><a class=\"btn btn-primary btn-lg\" role=\"button\" href=\"register\">Register &raquo;</a> your own please.");
++        }
++    }
++
+     @Override
+     public User save(User user) {
++        checkModificationAllowed(user.getId());
+         return proxy.save(user);
+     }
+ 
+     @Override
+     public boolean delete(int id) {
++        checkModificationAllowed(id);
+         return proxy.delete(id) != 0;
+     }
+ 
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- pom.xml	(date 1463003818000)
++++ pom.xml	(revision )
+@@ -329,6 +329,36 @@
+                 <activeByDefault>true</activeByDefault>
+             </activation>
+         </profile>
++        <profile>
++            <id>heroku</id>
++            <build>
++                <plugins>
++                    <plugin>
++                        <groupId>org.apache.maven.plugins</groupId>
++                        <artifactId>maven-dependency-plugin</artifactId>
++                        <version>2.10</version>
++                        <executions>
++                            <execution>
++                                <phase>package</phase>
++                                <goals>
++                                    <goal>copy</goal>
++                                </goals>
++                                <configuration>
++                                    <artifactItems>
++                                        <artifactItem>
++                                            <groupId>com.github.jsimone</groupId>
++                                            <artifactId>webapp-runner</artifactId>
++                                            <version>7.0.57.2</version>
++                                            <destFileName>webapp-runner.jar</destFileName>
++                                        </artifactItem>
++                                    </artifactItems>
++                                </configuration>
++                            </execution>
++                        </executions>
++                    </plugin>
++                </plugins>
++            </build>
++        </profile>
+     </profiles>
+ 
+     <dependencyManagement>
+Index: system.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>NATIVE_TO_ASCII_UTF-8
+===================================================================
+--- system.properties	(revision )
++++ system.properties	(revision )
+@@ -0,0 +1,1 @@
++java.runtime.version=1.8
+\ No newline at end of file

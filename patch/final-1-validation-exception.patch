@@ -1,0 +1,243 @@
+Index: src/main/java/ru/javawebinar/topjava/web/meal/UserMealAjaxController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/meal/UserMealAjaxController.java	(date 1463014186000)
++++ src/main/java/ru/javawebinar/topjava/web/meal/UserMealAjaxController.java	(revision )
+@@ -1,9 +1,6 @@
+ package ru.javawebinar.topjava.web.meal;
+ 
+-import org.springframework.http.HttpStatus;
+ import org.springframework.http.MediaType;
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import ru.javawebinar.topjava.model.UserMeal;
+ import ru.javawebinar.topjava.to.UserMealTo;
+@@ -40,19 +37,12 @@
+     }
+ 
+     @RequestMapping(method = RequestMethod.POST)
+-    public ResponseEntity<String> updateOrCreate(@Valid UserMealTo mealTo, BindingResult result) {
+-        if (result.hasErrors()) {
+-            // TODO change to exception handler
+-            StringBuilder sb = new StringBuilder();
+-            result.getFieldErrors().forEach(fe -> sb.append(fe.getField()).append(" ").append(fe.getDefaultMessage()).append("<br>"));
+-            return new ResponseEntity<>(sb.toString(), HttpStatus.UNPROCESSABLE_ENTITY);
+-        }
++    public void updateOrCreate(@Valid UserMealTo mealTo) {
+         if (mealTo.getId() == 0) {
+             super.create(createFromTo(mealTo));
+         } else {
+             super.update(createFromTo(mealTo), mealTo.getId());
+         }
+-        return new ResponseEntity<>(HttpStatus.OK);
+     }
+ 
+     @RequestMapping(value = "/filter", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/web/user/AdminAjaxController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/user/AdminAjaxController.java	(date 1463014186000)
++++ src/main/java/ru/javawebinar/topjava/web/user/AdminAjaxController.java	(revision )
+@@ -1,9 +1,10 @@
+ package ru.javawebinar.topjava.web.user;
+ 
+-import org.springframework.http.HttpStatus;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.context.MessageSource;
++import org.springframework.context.i18n.LocaleContextHolder;
++import org.springframework.dao.DataIntegrityViolationException;
+ import org.springframework.http.MediaType;
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.to.UserTo;
+@@ -19,6 +20,9 @@
+ @RequestMapping("/ajax/admin/users")
+ public class AdminAjaxController extends AbstractUserController {
+ 
++    @Autowired
++    private MessageSource messageSource;
++
+     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+     public List<User> getAll() {
+         return super.getAll();
+@@ -35,19 +39,16 @@
+     }
+ 
+     @RequestMapping(method = RequestMethod.POST)
+-    public ResponseEntity<String> createOrUpdate(@Valid UserTo userTo, BindingResult result) {
+-        if (result.hasErrors()) {
+-            // TODO change to exception handler
+-            StringBuilder sb = new StringBuilder();
+-            result.getFieldErrors().forEach(fe -> sb.append(fe.getField()).append(" ").append(fe.getDefaultMessage()).append("<br>"));
+-            return new ResponseEntity<>(sb.toString(), HttpStatus.UNPROCESSABLE_ENTITY);
+-        }
++    public void createOrUpdate(@Valid UserTo userTo) {
++        try {
+-        if (userTo.getId() == 0) {
+-            super.create(UserUtil.createFromTo(userTo));
+-        } else {
+-            super.update(userTo);
+-        }
++            if (userTo.getId() == 0) {
++                super.create(UserUtil.createFromTo(userTo));
++            } else {
++                super.update(userTo);
++            }
+-        return new ResponseEntity<>(HttpStatus.OK);
++        } catch (DataIntegrityViolationException e) {
++            throw new DataIntegrityViolationException(messageSource.getMessage("exception.duplicate_email", null, LocaleContextHolder.getLocale()));
++        }
+     }
+ 
+     @RequestMapping(value = "/{id}", method = RequestMethod.POST)
+Index: config/messages/app.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- config/messages/app.properties	(date 1463014186000)
++++ config/messages/app.properties	(revision )
+@@ -13,4 +13,6 @@
+ meals.edit=Edit meal
+ meals.add=Add meal
+ 
+-common.select=Select
+\ No newline at end of file
++common.select=Select
++
++exception.duplicate_email=User with this email already present in application.
+\ No newline at end of file
+Index: config/messages/app_ru.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- config/messages/app_ru.properties	(date 1463014186000)
++++ config/messages/app_ru.properties	(revision )
+@@ -14,4 +14,6 @@
+ meals.edit=Редактировать еду
+ meals.add=Добавить еду
+ 
+-common.select=Выбрать
+\ No newline at end of file
++common.select=Выбрать
++
++exception.duplicate_email=Пользователь с таким email уже есть в приложении.
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java	(date 1463014186000)
++++ src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java	(revision )
+@@ -6,11 +6,14 @@
+ import org.springframework.core.annotation.Order;
+ import org.springframework.dao.DataIntegrityViolationException;
+ import org.springframework.http.HttpStatus;
++import org.springframework.validation.BindException;
++import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import ru.javawebinar.topjava.util.exception.ErrorInfo;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ 
+ import javax.servlet.http.HttpServletRequest;
++import javax.validation.ValidationException;
+ 
+ /**
+  * User: gkislin
+@@ -34,6 +37,17 @@
+     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
+         return logAndGetErrorInfo(req, e, true);
++    }
++
++    @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
++    @ExceptionHandler(BindException.class)
++    @ResponseBody
++    @Order(Ordered.HIGHEST_PRECEDENCE + 2)
++    public ErrorInfo bindValidationError(HttpServletRequest req, BindingResult result) {
++        LOG.error("BindException at request " + req.getRequestURL());
++        StringBuilder sb = new StringBuilder();
++        result.getFieldErrors().forEach(fe -> sb.append(fe.getField()).append(" ").append(fe.getDefaultMessage()).append("<br>"));
++        return logAndGetErrorInfo(req, new ValidationException(sb.toString()), false);
+     }
+ 
+     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+Index: src/main/java/ru/javawebinar/topjava/web/RootController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/RootController.java	(date 1463014186000)
++++ src/main/java/ru/javawebinar/topjava/web/RootController.java	(revision )
+@@ -1,5 +1,6 @@
+ package ru.javawebinar.topjava.web;
+ 
++import org.springframework.dao.DataIntegrityViolationException;
+ import org.springframework.security.access.prepost.PreAuthorize;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.ModelMap;
+@@ -56,16 +57,19 @@
+ 
+     @RequestMapping(value = "/profile", method = RequestMethod.POST)
+     public String updateProfile(@Valid UserTo userTo, BindingResult result, SessionStatus status) {
+-        if (result.hasErrors()) {
+-            return "profile";
+-        } else {
++        if (!result.hasErrors()) {
++            try {
+-            userTo.setId(LoggedUser.id());
+-            super.update(userTo);
+-            LoggedUser.get().update(userTo);
+-            status.setComplete();
+-            return "redirect:meals";
++                userTo.setId(LoggedUser.id());
++                super.update(userTo);
++                LoggedUser.get().update(userTo);
++                status.setComplete();
++                return "redirect:meals";
++            } catch (DataIntegrityViolationException ex) {
++                result.rejectValue("email", "exception.duplicate_email");
+-        }
+-    }
++            }
++        }
++        return "profile";
++    }
+ 
+     @RequestMapping(value = "/register", method = RequestMethod.GET)
+     public String register(ModelMap model) {
+@@ -76,13 +80,16 @@
+ 
+     @RequestMapping(value = "/register", method = RequestMethod.POST)
+     public String saveRegister(@Valid UserTo userTo, BindingResult result, SessionStatus status, ModelMap model) {
+-        if (result.hasErrors()) {
+-            model.addAttribute("register", true);
+-            return "profile";
+-        } else {
++        if (!result.hasErrors()) {
++            try {
+-            super.create(UserUtil.createFromTo(userTo));
+-            status.setComplete();
+-            return "redirect:login?message=app.registered";
++                super.create(UserUtil.createFromTo(userTo));
++                status.setComplete();
++                return "redirect:login?message=app.registered";
++            } catch (DataIntegrityViolationException ex) {
++                result.rejectValue("email", "exception.duplicate_email");
+-        }
++            }
++        }
++        model.addAttribute("register", true);
++        return "profile";
+     }
+ }
