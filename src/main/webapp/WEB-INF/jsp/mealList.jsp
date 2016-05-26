@@ -154,9 +154,7 @@
             type: "POST",
             url: ajaxUrl + 'filter',
             data: $('#filter').serialize(),
-            success: function (data) {
-                updateTableByData(data);
-            }
+            success: updateTableByData
         });
         return false;
     }

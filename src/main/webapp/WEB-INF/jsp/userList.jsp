@@ -88,6 +88,7 @@
 <script type="text/javascript" src="webjars/noty/2.3.8/js/noty/packaged/jquery.noty.packaged.min.js"></script>
 <script type="text/javascript" src="resources/js/datatablesUtil.js"></script>
 <script type="text/javascript" src="resources/js/userDatatables.js"></script>
+</html>
         $(':checkbox').each(function () {
             if (!$(this).is(":checked")) {
                 $(this).closest('tr').css("text-decoration", "line-through");
