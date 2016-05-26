@@ -18,7 +18,7 @@
 
             <div class="view-box">
                 <form:form modelAttribute="userTo" class="form-horizontal" method="post"
-                           action="${register ? 'register' : 'profile'}" charset="utf-8"
+                           action="${register ? 'register' : 'profile'}" charset="utf-8"></form:form>
                 <form:form modelAttribute="userTo" class="form-horizontal" method="post" action="profile"
                            charset="utf-8"
                            accept-charset="UTF-8">
